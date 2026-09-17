@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Happy Birthday! 🎀</title>
+  
+  <!-- High-End Calligraphy & Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --gold: #c5a059;
+      --gold-light: #f3e5c8;
+      --gold-dark: #8c6d31;
+      --ribbon-red: #8f1d30;
+      --ribbon-sheen: #bd2d47;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* STRICT ZERO-SCROLL LOCKED VIEWPORT */
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: fixed;
+      background: #0d0809;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* Sound Control Button */
+    .sound-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 1000;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(245, 235, 215, 0.92);
+      border: 1.5px solid var(--gold);
+      color: #3b2819;
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+    .sound-toggle:hover {
+      transform: scale(1.08);
+      background: #fff;
+    }
+
+    /* ========================================================
+       STAGE 1: FULL-SCREEN SOLID BOX LID (NO DISSOLVE)
+       ======================================================== */
+    .box-lid-viewport {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: radial-gradient(circle at 50% 40%, #2f2326 0%, #171113 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.85);
+      cursor: pointer;
+      /* SOLID MOVEMENT: OPAQUE AND HEAVY */
+      transition: transform 1.15s cubic-bezier(0.7, 0, 0.2, 1);
+      perspective: 1200px;
+    }
+    .box-lid-viewport.opened {
+      transform: translateY(-135vh) rotateX(10deg);
+    }
+
+    .lid-surface {
+      position: absolute;
+      inset: 20px;
+      border: 2px solid rgba(197, 160, 89, 0.4);
+      outline: 1px solid rgba(197, 160, 89, 0.2);
+      outline-offset: -10px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+    }
+    .lid-ribbon-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 76px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #6c1221, var(--ribbon-sheen) 50%, #6c1221);
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    }
+    .lid-ribbon-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 76px;
+      transform: translateY(-50%);
+      background: linear-gradient(180deg, #6c1221, var(--ribbon-sheen) 50%, #6c1221);
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    }
+    .lid-seal {
+      position: relative;
+      z-index: 10;
+      width: min(340px, 80vw);
+      padding: 34px 28px;
+      background: #fffdf9;
+      border-radius: 4px;
+      border: 2px solid var(--gold);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 6px #fffdf9, inset 0 0 0 8px var(--gold-light);
+      text-align: center;
+      transition: transform 0.4s ease;
+    }
+    .box-lid-viewport:hover .lid-seal {
+      transform: scale(1.03);
+    }
+    .seal-subtitle {
+      font-size: 0.72rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .seal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      color: #2b2523;
+      margin-bottom: 14px;
+    }
+    .seal-prompt {
+      display: inline-block;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: #fff;
+      background: var(--ribbon-red);
+      padding: 7px 18px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(143, 29, 48, 0.35);
+      animation: pulseButton 2s infinite ease-in-out;
+    }
+    @keyframes pulseButton {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    /* ========================================================
+       STAGE 2: THE CUSTOM BOX CANVAS (ZERO-SCROLL)
+       ======================================================== */
+    .box-canvas {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: calc(100vh * (16 / 10));
+      max-height: calc(100vw * (10 / 16));
+      aspect-ratio: 16 / 10;
+      background: url('bg.png') center center / 100% 100% no-repeat;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+      overflow: hidden;
+    }
+
+    /* ========================================================
+       3D PAPER DOLL STAGE (ZERO RECTANGULAR ARTIFACTS)
+       ======================================================== */
+    .doll-stage {
+      position: absolute;
+      top: 49.5%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30%;
+      height: 63%;
+      pointer-events: none;
+      z-index: 5;
+      perspective: 1000px;
+    }
+
+    /* Rotating Inner Wrapper (Spins the entire figure naturally) */
+    .doll-stage-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .doll-stage-inner.spinning {
+      transform: rotateY(90deg) scale(0.96);
+      transition: transform 0.18s ease-in;
+    }
+
+    .doll-figure {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      visibility: hidden;
+      /* Soft contact shadow strictly following PNG silhouette */
+      filter: drop-shadow(0 14px 24px rgba(0,0,0,0.52));
+    }
+    .doll-figure.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ========================================================
+       DUAL-POSITION SCATTERED ITEMS
+       ======================================================== */
+    .scatter-item {
+      position: absolute;
+      cursor: pointer;
+      transform-origin: center center;
+      transition: left 0.55s cubic-bezier(0.25, 1, 0.5, 1), 
+                  right 0.55s cubic-bezier(0.25, 1, 0.5, 1), 
+                  top 0.55s cubic-bezier(0.25, 1, 0.5, 1), 
+                  transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* --- UNOPENED TAG: WARM VINTAGE PARCHMENT / KRAFT --- */
+    .tag-unopened {
+      width: clamp(56px, 5.4vw, 76px);
+      height: clamp(78px, 7.6vw, 106px);
+      background: linear-gradient(145deg, #f7eedc 0%, #ded0b4 100%);
+      border: 1.5px solid #a88d5e;
+      border-radius: 4px;
+      clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .tag-unopened::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #8b6c37;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 0 0 1.5px #f4e8cb;
+    }
+    .tag-emoji {
+      font-size: clamp(1.9rem, 2.7vw, 2.5rem);
+      margin-top: 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+      transition: transform 0.25s ease;
+    }
+    .scatter-item:hover .tag-emoji {
+      transform: scale(1.18);
+    }
+
+    /* --- OPENED STATE: PURE ALPHA-CONTOUR TORN PAPER (NO BOX GLOW) --- */
+    .scrap-opened {
+      display: none;
+      position: relative;
+      width: clamp(210px, 21.5vw, 275px);
+      min-height: clamp(135px, 15vh, 180px);
+      animation: scrapPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes scrapPop {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .scatter-item.is-opened .tag-unopened { display: none; }
+    .scatter-item.is-opened .scrap-opened { display: flex; }
+
+    /* The Real PNG image traces the actual torn contour pixels */
+    .paper-contour-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,0.65));
+      transition: filter 0.3s ease;
+    }
+
+    /* Content Area over Paper */
+    .scrap-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      padding: 14% 12% 11%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* CRISP WHITE READABLE TEXT ON ALL PAPERS */
+    .scrap-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(1rem, 1.28vw, 1.25rem);
+      line-height: 1.34;
+      font-weight: 700;
+      text-align: center;
+      word-wrap: break-word;
+      color: #ffffff !important;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    /* Active Look: Elevated Natural Shadow (Zero Glowing Box) */
+    .scatter-item.active-look .paper-contour-img {
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.85));
+    }
+
+    /* ========================================================
+       1. UNOPENED POSITIONS (INTIMATE VELVET - CLOSE TO DOLL)
+       ======================================================== */
+    #item-1 { left: 20%; top: 23%; transform: rotate(-5deg); }
+    #item-2 { left: 28%; top: 37%; transform: rotate(6deg); }
+    #item-3 { left: 19%; top: 52%; transform: rotate(-4deg); }
+    #item-4 { left: 27%; top: 67%; transform: rotate(7deg); }
+
+    #item-5 { right: 28%; top: 21%; transform: rotate(6deg); }
+    #item-6 { right: 19%; top: 34%; transform: rotate(-7deg); }
+    #item-7 { right: 28%; top: 48%; transform: rotate(5deg); }
+    #item-8 { right: 19%; top: 62%; transform: rotate(-6deg); }
+    #item-9 { right: 27%; top: 75%; transform: rotate(8deg); }
+
+    /* ========================================================
+       2. OPENED POSITIONS (GLIDE OUTWARD - ZERO DOLL OVERLAP)
+       ======================================================== */
+    #item-1.is-opened { left: 4%; top: 20%; transform: rotate(-6deg); }
+    #item-2.is-opened { left: 14%; top: 33%; transform: rotate(5deg); }
+    #item-3.is-opened { left: 4%; top: 49%; transform: rotate(-5deg); }
+    #item-4.is-opened { left: 13%; top: 66%; transform: rotate(6deg); }
+
+    #item-5.is-opened { right: 4%; top: 18%; transform: rotate(6deg); }
+    #item-6.is-opened { right: 14%; top: 31%; transform: rotate(-7deg); }
+    #item-7.is-opened { right: 4%; top: 45%; transform: rotate(5deg); }
+    #item-8.is-opened { right: 14%; top: 59%; transform: rotate(-6deg); }
+    #item-9.is-opened { right: 4%; top: 73%; transform: rotate(8deg); }
+
+    /* ========================================================
+       RESPONSIVE SAFE-SCALING (MOBILE / TABLET)
+       ======================================================== */
+    @media (max-width: 900px) {
+      .doll-stage {
+        width: 38%;
+        height: 64%;
+        top: 49%;
+      }
+      .scrap-opened {
+        width: clamp(140px, 28vw, 190px);
+        min-height: clamp(105px, 13vh, 140px);
+      }
+      .scrap-content { padding: 10% 8%; }
+      #item-1.is-opened { left: 2%; top: 19%; }
+      #item-2.is-opened { left: 9%; top: 34%; }
+      #item-3.is-opened { left: 2%; top: 51%; }
+      #item-4.is-opened { left: 9%; top: 68%; }
+
+      #item-5.is-opened { right: 2%; top: 19%; }
+      #item-6.is-opened { right: 9%; top: 33%; }
+      #item-7.is-opened { right: 2%; top: 48%; }
+      #item-8.is-opened { right: 9%; top: 64%; }
+      #item-9.is-opened { right: 2%; top: 78%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Audio Toggle -->
+  <button class="sound-toggle" id="soundBtn" title="Toggle Sound">🔊</button>
+
+  <!-- ========================================================
+       STAGE 1: 3D SOLID BOX LID (UNBOXING)
+       ======================================================== */ -->
+  <div class="box-lid-viewport" id="boxLid">
+    <div class="lid-surface"></div>
+    <div class="lid-ribbon-v"></div>
+    <div class="lid-ribbon-h"></div>
+    
+    <div class="lid-seal">
+      <div class="seal-subtitle">A Special Birthday Gift</div>
+      <h1 class="seal-title">For You</h1>
+      <div class="seal-prompt">Tap to Open Your Box ✨</div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       STAGE 2: THE LUXURY BOX CANVAS
+       ======================================================== */ -->
+  <main class="box-canvas">
+    <!-- Center Doll Stage (3D Paper Doll Spin) -->
+    <div class="doll-stage">
+      <div class="doll-stage-inner" id="dollInner">
+        <img src="base.png" alt="Doll Base" class="doll-figure visible" id="dollBase" />
+        <div id="outfitsMount"></div>
+      </div>
+    </div>
+
+    <!-- 9 Dual-Position Items Mount -->
+    <div id="scatterContainer"></div>
+  </main>
+
+  <script>
+    /* ========================================================
+       DATA: 9 OUTFITS & 3 REUSED PAPERS
+       ======================================================== */
+    const outfitsData = [
+      { id: 1, emoji: "🪄", file: "outfit-1.png", paperFile: "paper-1.png", wish: "“May your year be filled with real-life magic, brave adventures, and pure wonder!”" },
+      { id: 2, emoji: "📚", file: "outfit-2.png", paperFile: "paper-2.png", wish: "“Here’s to relentless curiosity, brilliant triumphs, and staying effortlessly sharp!”" },
+      { id: 3, emoji: "🌟", file: "outfit-3.png", paperFile: "paper-3.png", wish: "“Never dim your light—you are the warmest, brightest star in every single room!”" },
+      { id: 4, emoji: "🧛‍♀️", file: "outfit-4.png", paperFile: "paper-1.png", wish: "“Wishing you a dangerously captivating year of drama, power, and timeless allure.”" },
+      { id: 5, emoji: "💄", file: "outfit-5.png", paperFile: "paper-2.png", wish: "“To turning heads, shattering expectations, and conquering life in high heels!”" },
+      { id: 6, emoji: "📸", file: "outfit-6.png", paperFile: "paper-3.png", wish: "“May this year take you to breathtaking destinations and unforgettable sunsets!”" },
+      { id: 7, emoji: "💻", file: "outfit-7.png", paperFile: "paper-1.png", wish: "“May all your visions compile smoothly and your ambitious dreams soar to the stars!”" },
+      { id: 8, emoji: "🧸", file: "outfit-8.png", paperFile: "paper-2.png", wish: "“Wishing you slow cozy mornings, warm knit sweaters, and all the sweet comfort in the world.”" },
+      { id: 9, emoji: "🎭", file: "outfit-9.png", paperFile: "paper-3.png", wish: "“May life be an enchanting grand ballroom where every turn brings joy, romance, and magic!”" }
+    ];
+
+    /* ========================================================
+       WHIMSICAL "HAPPY BIRTHDAY" MUSIC-BOX & FESTIVE SOUND ENGINE
+       ======================================================== */
+    class BirthdayMusicBoxEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.isPlaying = false;
+        this.musicTimeout = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Music-Box Bell Generator
+      playBell(freq, time, duration = 0.85, volume = 0.16) {
+        if (this.muted || !this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, time);
+
+        gain.gain.setValueAtTime(volume, time);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+
+        const oscShimmer = this.ctx.createOscillator();
+        const gainShimmer = this.ctx.createGain();
+        oscShimmer.type = "sine";
+        oscShimmer.frequency.setValueAtTime(freq * 3.0, time);
+
+        gainShimmer.gain.setValueAtTime(volume * 0.18, time);
+        gainShimmer.gain.exponentialRampToValueAtTime(0.0001, time + duration * 0.4);
+
+        oscShimmer.connect(gainShimmer);
+        gainShimmer.connect(this.ctx.destination);
+        oscShimmer.start(time);
+        oscShimmer.stop(time + duration * 0.4);
+      }
+
+      // Continuous Whimsical "Happy Birthday" Waltz Melody
+      startHappyBirthdayLoop() {
+        if (!this.ctx || this.isPlaying) return;
+        this.isPlaying = true;
+
+        const beat = 0.48; // 3/4 waltz tempo
+        const melody = [
+          { f: 392.00, d: 0.75 * beat }, // G4
+          { f: 392.00, d: 0.25 * beat }, // G4
+          { f: 440.00, d: 1.0 * beat },  // A4
+          { f: 392.00, d: 1.0 * beat },  // G4
+          { f: 523.25, d: 1.0 * beat },  // C5
+          { f: 493.88, d: 2.0 * beat },  // B4
+          { f: 392.00, d: 0.75 * beat }, // G4
+          { f: 392.00, d: 0.25 * beat }, // G4
+          { f: 440.00, d: 1.0 * beat },  // A4
+          { f: 392.00, d: 1.0 * beat },  // G4
+          { f: 587.33, d: 1.0 * beat },  // D5
+          { f: 523.25, d: 2.0 * beat },  // C5
+          { f: 392.00, d: 0.75 * beat }, // G4
+          { f: 392.00, d: 0.25 * beat }, // G4
+          { f: 783.99, d: 1.0 * beat },  // G5
+          { f: 659.25, d: 1.0 * beat },  // E5
+          { f: 523.25, d: 1.0 * beat },  // C5
+          { f: 493.88, d: 1.0 * beat },  // B4
+          { f: 440.00, d: 1.0 * beat },  // A4
+          { f: 698.46, d: 0.75 * beat }, // F5
+          { f: 698.46, d: 0.25 * beat }, // F5
+          { f: 659.25, d: 1.0 * beat },  // E5
+          { f: 523.25, d: 1.0 * beat },  // C5
+          { f: 587.33, d: 1.0 * beat },  // D5
+          { f: 523.25, d: 2.2 * beat }   // C5
+        ];
+
+        const playCycle = () => {
+          if (!this.isPlaying || this.muted) return;
+          let currentTime = this.ctx.currentTime + 0.1;
+
+          melody.forEach(note => {
+            this.playBell(note.f, currentTime, note.d * 1.5, 0.11);
+            currentTime += note.d;
+          });
+
+          const totalDuration = (currentTime - this.ctx.currentTime) * 1000;
+          this.musicTimeout = setTimeout(playCycle, totalDuration + 2500);
+        };
+
+        playCycle();
+      }
+
+      // Festive Sparkle Chime on Tag Click
+      playFestiveClick() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [1046.50, 1318.51, 1567.98, 2093.00];
+        notes.forEach((freq, i) => {
+          this.playBell(freq, now + i * 0.045, 0.65, 0.15);
+        });
+      }
+
+      // Triumphant Celebration Flourish for Finale
+      playGrandFinale() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const chords = [
+          { f: 523.25, d: 0.0 }, { f: 659.25, d: 0.0 }, { f: 783.99, d: 0.0 },
+          { f: 659.25, d: 0.16 }, { f: 783.99, d: 0.16 }, { f: 1046.50, d: 0.16 },
+          { f: 783.99, d: 0.32 }, { f: 1046.50, d: 0.32 }, { f: 1318.51, d: 0.32 },
+          { f: 1046.50, d: 0.52 }, { f: 1567.98, d: 0.52 }, { f: 2093.00, d: 0.52 }
+        ];
+        chords.forEach(c => {
+          this.playBell(c.f, now + c.d, 1.4, 0.18);
+        });
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        if (!this.muted && !this.isPlaying) {
+          this.startHappyBirthdayLoop();
+        }
+        return this.muted;
+      }
+    }
+
+    const sound = new BirthdayMusicBoxEngine();
+    const soundBtn = document.getElementById('soundBtn');
+    soundBtn.addEventListener('click', () => {
+      sound.init();
+      const isMuted = sound.toggleMute();
+      soundBtn.textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    /* ========================================================
+       PRELOAD OUTFITS
+       ======================================================== */
+    const outfitsMount = document.getElementById('outfitsMount');
+    const outfitDOMElements = {};
+
+    outfitsData.forEach(item => {
+      const img = new Image();
+      img.src = item.file;
+      img.alt = `Look ${item.id}`;
+      img.className = 'doll-figure';
+      img.id = `look-${item.id}`;
+      outfitsMount.appendChild(img);
+      outfitDOMElements[item.id] = img;
+    });
+
+    /* ========================================================
+       BUILD DUAL-POSITION TAGS & PAPERS (ALPHA CONTOUR)
+       ======================================================== */
+    const scatterContainer = document.getElementById('scatterContainer');
+    const openedItems = new Set();
+    let currentTopZ = 50;
+
+    outfitsData.forEach(item => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'scatter-item';
+      wrapper.id = `item-${item.id}`;
+
+      wrapper.innerHTML = `
+        <!-- UNOPENED: WARM VINTAGE PARCHMENT TAG -->
+        <div class="tag-unopened">
+          <span class="tag-emoji">${item.emoji}</span>
+        </div>
+
+        <!-- OPENED: REAL ALPHA-CONTOUR TORN PAPER (NO BOX GLOW) -->
+        <div class="scrap-opened">
+          <img src="${item.paperFile}" class="paper-contour-img" alt="Paper note" />
+          <div class="scrap-content">
+            <p class="scrap-text">${item.wish}</p>
+          </div>
+        </div>
+      `;
+
+      wrapper.addEventListener('click', () => selectLook(item.id));
+      scatterContainer.appendChild(wrapper);
+    });
+
+    /* ========================================================
+       3D PAPER DOLL TRANSFORMATION (ZERO RECTANGLE ARTIFACTS)
+       ======================================================== */
+    const dollInner = document.getElementById('dollInner');
+    let isTransitioning = false;
+
+    function selectLook(lookId) {
+      if (isTransitioning) return;
+      isTransitioning = true;
+
+      // 1. Play Festive Sparkle Chime
+      sound.playFestiveClick();
+
+      const itemEl = document.getElementById(`item-${lookId}`);
+      if (!openedItems.has(lookId)) {
+        openedItems.add(lookId);
+        itemEl.classList.add('is-opened');
+      }
+
+      // Elevate clicked item to top layer
+      currentTopZ++;
+      itemEl.style.zIndex = currentTopZ;
+
+      // Active Look State
+      document.querySelectorAll('.scatter-item').forEach(i => i.classList.remove('active-look'));
+      itemEl.classList.add('active-look');
+
+      // 2. Physical 3D Paper Doll Spin: 0deg -> 90deg (Edge-on)
+      dollInner.classList.add('spinning');
+
+      // At 90 degrees (doll is invisible to user), swap images cleanly
+      setTimeout(() => {
+        // Hide Base Underwear Completely
+        document.getElementById('dollBase').classList.remove('visible');
+
+        // Reveal ONLY selected look
+        Object.keys(outfitDOMElements).forEach(id => {
+          outfitDOMElements[id].classList.toggle('visible', id == lookId);
+        });
+
+        // 3. Physical Spin back: 90deg -> 0deg with spring settle
+        dollInner.classList.remove('spinning');
+        isTransitioning = false;
+      }, 180);
+
+      // Check Finale
+      if (openedItems.size === 9) {
+        triggerGrandFinale();
+      }
+    }
+
+    /* ========================================================
+       STAGE 1: SOLID UNBOXING & EPIC MULTI-WAVE CONFETTI STORM
+       ======================================================== */
+    const boxLid = document.getElementById('boxLid');
+
+    boxLid.addEventListener('click', () => {
+      sound.init();
+      sound.playFestiveClick();
+      sound.startHappyBirthdayLoop();
+
+      // Lift and slide the SOLID lid off-screen
+      boxLid.classList.add('opened');
+
+      setTimeout(() => {
+        boxLid.style.display = 'none';
+      }, 1200);
+
+      // --- EPIC MULTI-WAVE CONFETTI CELEBRATION ---
+      const colors = ['#c5a059', '#f3e5c8', '#8f1d30', '#ffffff', '#e88d99', '#ffd700'];
+
+      // WAVE 1: Immediate Dual-Corner High Velocity Cannons
+      setTimeout(() => {
+        confetti({
+          particleCount: 140,
+          angle: 60,
+          spread: 80,
+          startVelocity: 45,
+          origin: { x: 0.05, y: 0.85 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 140,
+          angle: 120,
+          spread: 80,
+          startVelocity: 45,
+          origin: { x: 0.95, y: 0.85 },
+          colors: colors
+        });
+      }, 300);
+
+      // WAVE 2: Center 360-Degree Expansion
+      setTimeout(() => {
+        confetti({
+          particleCount: 160,
+          spread: 100,
+          startVelocity: 35,
+          origin: { x: 0.5, y: 0.5 },
+          colors: colors
+        });
+      }, 600);
+
+      // WAVE 3: 2.5-Second Golden Sky Shower
+      setTimeout(() => {
+        const end = Date.now() + 2500;
+        (function rain() {
+          confetti({
+            particleCount: 4,
+            angle: 90,
+            spread: 120,
+            origin: { x: Math.random(), y: 0 },
+            colors: colors,
+            gravity: 0.7,
+            scalar: 0.9
+          });
+          if (Date.now() < end) requestAnimationFrame(rain);
+        })();
+      }, 900);
+    });
+
+    /* ========================================================
+       STAGE 3: GRAND FINALE CELEBRATION
+       ======================================================== */
+    let finaleTriggered = false;
+    function triggerGrandFinale() {
+      if (finaleTriggered) return;
+      finaleTriggered = true;
+
+      setTimeout(() => {
+        sound.playGrandFinale();
+
+        const end = Date.now() + 4 * 1000;
+        (function frame() {
+          confetti({
+            particleCount: 6,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#c5a059', '#f3e5c8', '#8f1d30', '#ffffff', '#ffd700']
+          });
+          confetti({
+            particleCount: 6,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#c5a059', '#f3e5c8', '#8f1d30', '#ffffff', '#ffd700']
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+      }, 400);
+    }
+  </script>
+</body>
+</html>
