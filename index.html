@@ -182,7 +182,10 @@
       width: min(100vw, calc(100vh * 1.6));
       height: min(100vh, calc(100vw * 0.625));
       aspect-ratio: 16 / 10;
-      background: url('bg.png') center center / 100% 100% no-repeat;
+      background-image: url('bg-2.png'), url('bg.png');
+      background-position: center center;
+      background-size: 100% 100%, 100% 100%;
+      background-repeat: no-repeat;
       box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
       overflow: hidden;
       flex: 0 0 auto;
@@ -443,14 +446,16 @@
         max-width: none;
         max-height: none;
         aspect-ratio: auto;
-        background-size: cover;
-        background-position: center;
+        background-image: url('bg-2.png'), url('bg.png');
+        background-size: cover, cover;
+        background-position: center, center;
+        background-repeat: no-repeat, no-repeat;
       }
 
       .doll-stage {
-        width: 34vw;
-        height: 56dvh;
-        top: 50%;
+        width: min(44vw, 190px);
+        height: 66dvh;
+        top: 51%;
         left: 50%;
       }
 
@@ -488,29 +493,32 @@
           0 2px 7px rgba(0,0,0,.9);
       }
 
-      /* Unopened layout: keep every tap target outside the doll. */
-      #item-1 { left: 5%; top: 15%; transform: rotate(-5deg); }
-      #item-2 { left: 5%; top: 31%; transform: rotate(6deg); }
-      #item-3 { left: 5%; top: 47%; transform: rotate(-4deg); }
-      #item-4 { left: 5%; top: 63%; transform: rotate(7deg); }
+      /* Portrait composition:
+         4 tags on the left + 5 tags on the right,
+         leaving a clean vertical corridor for the doll. */
+      #item-1 { left: 3.5%; top: 12%; transform: rotate(-7deg); }
+      #item-2 { left: 3.5%; top: 30%; transform: rotate(6deg); }
+      #item-3 { left: 3.5%; top: 48%; transform: rotate(-5deg); }
+      #item-4 { left: 3.5%; top: 66%; transform: rotate(7deg); }
 
-      #item-5 { right: 5%; top: 13%; transform: rotate(6deg); }
-      #item-6 { right: 5%; top: 29%; transform: rotate(-7deg); }
-      #item-7 { right: 5%; top: 45%; transform: rotate(5deg); }
-      #item-8 { right: 5%; top: 61%; transform: rotate(-6deg); }
-      #item-9 { right: 5%; top: 77%; transform: rotate(8deg); }
+      #item-5 { right: 3.5%; top: 9%; transform: rotate(6deg); }
+      #item-6 { right: 3.5%; top: 25%; transform: rotate(-7deg); }
+      #item-7 { right: 3.5%; top: 41%; transform: rotate(5deg); }
+      #item-8 { right: 3.5%; top: 57%; transform: rotate(-6deg); }
+      #item-9 { right: 3.5%; top: 73%; transform: rotate(8deg); }
 
-      /* Opened notes stay close to the edges and never cover the doll. */
-      #item-1.is-opened { left: 1%; top: 12%; }
-      #item-2.is-opened { left: 1%; top: 31%; }
-      #item-3.is-opened { left: 1%; top: 50%; }
-      #item-4.is-opened { left: 1%; top: 69%; }
+      /* Opened notes expand inward only slightly; the center remains
+         reserved for the doll. */
+      #item-1.is-opened { left: 0.5%; top: 10%; }
+      #item-2.is-opened { left: 0.5%; top: 29%; }
+      #item-3.is-opened { left: 0.5%; top: 48%; }
+      #item-4.is-opened { left: 0.5%; top: 67%; }
 
-      #item-5.is-opened { right: 1%; top: 10%; }
-      #item-6.is-opened { right: 1%; top: 28%; }
-      #item-7.is-opened { right: 1%; top: 46%; }
-      #item-8.is-opened { right: 1%; top: 64%; }
-      #item-9.is-opened { right: 1%; top: 82%; }
+      #item-5.is-opened { right: 0.5%; top: 8%; }
+      #item-6.is-opened { right: 0.5%; top: 26%; }
+      #item-7.is-opened { right: 0.5%; top: 44%; }
+      #item-8.is-opened { right: 0.5%; top: 62%; }
+      #item-9.is-opened { right: 0.5%; top: 80%; }
 
       /* Avoid hover-only behavior on touch devices. */
       .box-lid-viewport:hover .lid-seal {
@@ -523,6 +531,31 @@
 
       .scatter-item:active .tag-emoji {
         transform: scale(1.12);
+      }
+    }
+
+    @media (max-width: 360px) and (orientation: portrait) {
+      .doll-stage {
+        width: 42vw;
+        height: 64dvh;
+      }
+
+      .tag-unopened {
+        width: 54px;
+        height: 76px;
+      }
+
+      .tag-emoji {
+        font-size: 1.75rem;
+      }
+
+      .scrap-opened {
+        width: 31vw;
+        min-height: 78px;
+      }
+
+      .scrap-text {
+        font-size: 0.76rem;
       }
     }
 
@@ -552,7 +585,7 @@
     /* ========================================================
        RESPONSIVE SAFE-SCALING (MOBILE / TABLET)
        ======================================================== */
-    @media (max-width: 900px) {
+    @media (max-width: 900px) and (min-width: 601px) {
       .doll-stage {
         width: 38%;
         height: 64%;
