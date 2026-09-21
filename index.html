@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Happy Birthday! 🎀</title>
   
   <!-- High-End Calligraphy & Serif -->
@@ -32,15 +32,24 @@
 
     /* STRICT ZERO-SCROLL LOCKED VIEWPORT */
     html, body {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
       overflow: hidden;
       position: fixed;
+      inset: 0;
       background: #0d0809;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Playfair Display', serif;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+
+    /* Use the real viewport height on modern mobile browsers. */
+    @supports (height: 100dvh) {
+      html, body { height: 100dvh; }
     }
 
     /* Sound Control Button */
@@ -170,14 +179,13 @@
        ======================================================== */
     .box-canvas {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      max-width: calc(100vh * (16 / 10));
-      max-height: calc(100vw * (10 / 16));
+      width: min(100vw, calc(100vh * 1.6));
+      height: min(100vh, calc(100vw * 0.625));
       aspect-ratio: 16 / 10;
       background: url('bg.png') center center / 100% 100% no-repeat;
       box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
       overflow: hidden;
+      flex: 0 0 auto;
     }
 
     /* ========================================================
@@ -358,6 +366,188 @@
     #item-7.is-opened { right: 4%; top: 45%; transform: rotate(5deg); }
     #item-8.is-opened { right: 14%; top: 59%; transform: rotate(-6deg); }
     #item-9.is-opened { right: 4%; top: 73%; transform: rotate(8deg); }
+
+    /* ========================================================
+       MOBILE COMPOSITION
+       The desktop scene is 16:10. On portrait phones that would
+       make the entire box only ~240px tall, so mobile gets a
+       full-height composition instead of a scaled-down desktop.
+       ======================================================== */
+
+    @media (max-width: 600px) and (orientation: portrait) {
+      html, body {
+        width: 100%;
+        height: 100dvh;
+      }
+
+      .sound-toggle {
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+      }
+
+      .box-lid-viewport {
+        padding:
+          max(16px, env(safe-area-inset-top))
+          max(16px, env(safe-area-inset-right))
+          max(16px, env(safe-area-inset-bottom))
+          max(16px, env(safe-area-inset-left));
+        perspective: 900px;
+      }
+
+      .box-lid-viewport.opened {
+        transform: translateY(-110dvh) rotateX(8deg);
+      }
+
+      .lid-surface {
+        inset: 10px;
+      }
+
+      .lid-ribbon-v {
+        width: 18vw;
+        max-width: 64px;
+        min-width: 42px;
+      }
+
+      .lid-ribbon-h {
+        height: 18vw;
+        max-height: 64px;
+        min-height: 42px;
+      }
+
+      .lid-seal {
+        width: min(86vw, 340px);
+        padding: 28px 20px;
+      }
+
+      .seal-subtitle {
+        font-size: clamp(0.58rem, 2.7vw, 0.72rem);
+        letter-spacing: clamp(2px, 0.9vw, 4px);
+      }
+
+      .seal-title {
+        font-size: clamp(1.55rem, 8vw, 2.2rem);
+      }
+
+      .seal-prompt {
+        font-size: clamp(0.62rem, 2.8vw, 0.75rem);
+        letter-spacing: 1.2px;
+        padding: 8px 14px;
+      }
+
+      .box-canvas {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        aspect-ratio: auto;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .doll-stage {
+        width: 34vw;
+        height: 56dvh;
+        top: 50%;
+        left: 50%;
+      }
+
+      .scatter-item {
+        /* Bigger touch target without changing the visual tag size. */
+        min-width: 52px;
+        min-height: 58px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .tag-unopened {
+        width: clamp(50px, 13vw, 66px);
+        height: clamp(70px, 18vw, 92px);
+      }
+
+      .tag-emoji {
+        font-size: clamp(1.65rem, 7vw, 2.2rem);
+      }
+
+      .scrap-opened {
+        width: clamp(118px, 34vw, 155px);
+        min-height: clamp(82px, 17vw, 112px);
+      }
+
+      .scrap-content {
+        padding: 12% 9% 10%;
+      }
+
+      .scrap-text {
+        font-size: clamp(0.82rem, 3.5vw, 1rem);
+        line-height: 1.18;
+        text-shadow:
+          0 1px 3px rgba(0,0,0,.98),
+          0 2px 7px rgba(0,0,0,.9);
+      }
+
+      /* Unopened layout: keep every tap target outside the doll. */
+      #item-1 { left: 5%; top: 15%; transform: rotate(-5deg); }
+      #item-2 { left: 5%; top: 31%; transform: rotate(6deg); }
+      #item-3 { left: 5%; top: 47%; transform: rotate(-4deg); }
+      #item-4 { left: 5%; top: 63%; transform: rotate(7deg); }
+
+      #item-5 { right: 5%; top: 13%; transform: rotate(6deg); }
+      #item-6 { right: 5%; top: 29%; transform: rotate(-7deg); }
+      #item-7 { right: 5%; top: 45%; transform: rotate(5deg); }
+      #item-8 { right: 5%; top: 61%; transform: rotate(-6deg); }
+      #item-9 { right: 5%; top: 77%; transform: rotate(8deg); }
+
+      /* Opened notes stay close to the edges and never cover the doll. */
+      #item-1.is-opened { left: 1%; top: 12%; }
+      #item-2.is-opened { left: 1%; top: 31%; }
+      #item-3.is-opened { left: 1%; top: 50%; }
+      #item-4.is-opened { left: 1%; top: 69%; }
+
+      #item-5.is-opened { right: 1%; top: 10%; }
+      #item-6.is-opened { right: 1%; top: 28%; }
+      #item-7.is-opened { right: 1%; top: 46%; }
+      #item-8.is-opened { right: 1%; top: 64%; }
+      #item-9.is-opened { right: 1%; top: 82%; }
+
+      /* Avoid hover-only behavior on touch devices. */
+      .box-lid-viewport:hover .lid-seal {
+        transform: none;
+      }
+
+      .scatter-item:hover .tag-emoji {
+        transform: none;
+      }
+
+      .scatter-item:active .tag-emoji {
+        transform: scale(1.12);
+      }
+    }
+
+    /* Small landscape phones/tablets: use the full available height
+       while retaining the original horizontal composition. */
+    @media (max-height: 600px) and (orientation: landscape) {
+      .box-canvas {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        aspect-ratio: auto;
+        background-size: cover;
+      }
+
+      .doll-stage {
+        width: 25vw;
+        height: 72dvh;
+      }
+
+      .scrap-opened {
+        width: clamp(145px, 22vw, 210px);
+        min-height: 100px;
+      }
+    }
 
     /* ========================================================
        RESPONSIVE SAFE-SCALING (MOBILE / TABLET)
